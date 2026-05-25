@@ -1,7 +1,10 @@
 import type { ExpenseListQuery } from "@/lib/validations/expense";
+import mongoose from "mongoose";
 
-export function buildExpenseFilter(query: ExpenseListQuery) {
-  const filter: Record<string, unknown> = {};
+export function buildExpenseFilter(query: ExpenseListQuery, userId: string) {
+  const filter: Record<string, unknown> = {
+    userId: new mongoose.Types.ObjectId(userId),
+  };
 
   if (query.q?.trim()) {
     filter.title = { $regex: query.q.trim(), $options: "i" };

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { requireUserId } from "@/lib/auth";
 import { Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/expense-utils";
 import { getExpensesForPage, buildExportUrl } from "@/lib/expense-server";
@@ -30,7 +31,8 @@ function FiltersFallback() {
 
 async function ExpenseList({ searchParams }: ExpensesPageProps) {
   const params = await searchParams;
-  const { expenses, pagination } = await getExpensesForPage(params);
+  const userId = await requireUserId();
+  const { expenses, pagination } = await getExpensesForPage(userId, params);
   const exportUrl = buildExportUrl(params);
   const hasFilters = Boolean(
     params.q || params.category || params.paymentMethod,
@@ -134,7 +136,9 @@ export default async function ExpensesPage(props: ExpensesPageProps) {
 
   return (
     <section className="flex flex-col gap-6">
-      <ExpenseList searchParams={props.searchParams} />
+      <Suspense fallback={<Skeleton className="h-96 w-full rounded-lg" />}>
+        <ExpenseList searchParams={props.searchParams} />
+      </Suspense>
     </section>
   );
 }

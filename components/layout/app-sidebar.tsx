@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, PlusCircle, Receipt, Wallet } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { LayoutDashboard, LogOut, PlusCircle, Receipt, Wallet } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -13,6 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   {
@@ -37,6 +40,7 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   function isActive(href: string, exact: boolean) {
     if (exact) {
@@ -72,6 +76,29 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        <div className="flex flex-col gap-3">
+          {session?.user && (
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">
+                {session.user.name}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {session.user.email}
+              </p>
+            </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+          >
+            <LogOut className="size-4" />
+            Sign out
+          </Button>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }

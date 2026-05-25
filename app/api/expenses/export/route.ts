@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Expense } from "@/database";
 import connectDB from "@/lib/mongodb";
+import { auth } from "@/auth";
 import { buildExpenseFilter, buildExpenseSort } from "@/lib/expense-query";
-import { handleApiError } from "@/lib/api-response";
+import { handleApiError, apiError } from "@/lib/api-response";
 import { expenseListQuerySchema } from "@/lib/validations/expense";
 import { CATEGORY_LABELS, PAYMENT_METHOD_LABELS } from "@/types/expense";
 
@@ -15,6 +16,11 @@ function escapeCsv(value: string) {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return apiError("Unauthorized", 401);
+    }
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const query = expenseListQuerySchema.parse({
@@ -23,7 +29,7 @@ export async function GET(request: NextRequest) {
       limit: 100,
     });
 
-    const filter = buildExpenseFilter(query);
+    const filter = buildExpenseFilter(query, session.user.id);
     const sort = buildExpenseSort(query.sort);
     const expenses = await Expense.find(filter).sort(sort).lean();
 

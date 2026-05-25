@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import mongoose from "mongoose";
 import { Expense } from "@/database";
 import connectDB from "@/lib/mongodb";
+import { requireUserId } from "@/lib/auth";
 import { serializeExpense } from "@/lib/expense-utils";
 import { ExpenseForm } from "@/components/expenses/expense-form";
 
@@ -12,6 +13,7 @@ type EditExpensePageProps = {
 
 export default async function EditExpensePage({ params }: EditExpensePageProps) {
   await connection();
+  const userId = await requireUserId();
   const { id } = await params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -19,7 +21,7 @@ export default async function EditExpensePage({ params }: EditExpensePageProps) 
   }
 
   await connectDB();
-  const expense = await Expense.findById(id).lean();
+  const expense = await Expense.findOne({ _id: id, userId }).lean();
 
   if (!expense) {
     notFound();

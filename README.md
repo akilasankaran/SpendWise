@@ -4,6 +4,7 @@ Personal expense tracker with a dashboard, category tagging, payment methods, an
 
 ## Features
 
+- **Authentication** — Email/password register and login; expenses scoped per user
 - **Dashboard** — Total expense count, total amount, and five most recent expenses
 - **Expense list** — Search, filter by category/payment method, sort, and pagination
 - **Create / edit** — Forms with category, payment method, tags, notes, and validation
@@ -19,6 +20,7 @@ Personal expense tracker with a dashboard, category tagging, payment methods, an
 | UI | React 19, Tailwind CSS 4, shadcn/ui |
 | Language | TypeScript |
 | Database | MongoDB, Mongoose 8 |
+| Auth | Auth.js (NextAuth v5), bcrypt |
 | Validation | Zod |
 | Feedback | Sonner (toasts) |
 
@@ -37,13 +39,13 @@ npm install
 cp .env.example .env.local
 ```
 
-Edit `.env.local` and set `MONGODB_URI` (see [MongoDB setup](#mongodb-setup) below).
+Edit `.env.local` and set `MONGODB_URI`, `AUTH_SECRET`, and `AUTH_URL` (see [Environment variables](#environment-variables) below).
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) — you will be redirected to `/register` or `/login` if not signed in.
 
 ## MongoDB setup
 
@@ -63,6 +65,8 @@ MONGODB_URI=mongodb://127.0.0.1:27017/spendwise
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `MONGODB_URI` | Yes | MongoDB connection string |
+| `AUTH_SECRET` | Yes | Secret for JWT sessions (`openssl rand -base64 32`) |
+| `AUTH_URL` | Yes | App URL (e.g. `http://localhost:3000`) |
 
 See [`.env.example`](.env.example) for a template.
 
@@ -79,19 +83,24 @@ See [`.env.example`](.env.example) for a template.
 
 ```
 app/
+├── (auth)/               # Login and register (no sidebar)
 ├── (dashboard)/          # Pages with sidebar layout
 │   ├── page.tsx          # Dashboard
 │   ├── expenses/         # List, create, edit
 │   ├── error.tsx         # Error boundary
 │   └── not-found.tsx     # 404 UI
+├── api/auth/             # Auth.js + register
 ├── api/expenses/         # REST routes + export
 components/
+├── auth/                 # Login and register forms
 ├── expenses/             # Forms, filters, actions
 ├── layout/               # App sidebar
 └── ui/                   # shadcn components
-database/                 # Mongoose models
-lib/                      # DB, validation, query helpers
+database/                 # User and Expense models
+lib/                      # DB, auth, validation, query helpers
 types/                    # Shared TypeScript types
+auth.ts                   # Auth.js configuration
+middleware.ts             # Route protection
 ```
 
 ## Routes
@@ -100,7 +109,9 @@ types/                    # Shared TypeScript types
 
 | Route | Description |
 |-------|-------------|
-| `/` | Dashboard |
+| `/login` | Sign in |
+| `/register` | Create account |
+| `/` | Dashboard (protected) |
 | `/expenses` | Expense list (search, filter, sort, pagination) |
 | `/expenses/new` | Create expense |
 | `/expenses/[id]/edit` | Edit expense |
@@ -109,7 +120,9 @@ types/                    # Shared TypeScript types
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| `GET` | `/api/expenses` | List expenses (`?page`, `limit`, `q`, `category`, `paymentMethod`, `sort`) |
+| `POST` | `/api/auth/register` | Create user account |
+| `*` | `/api/auth/[...nextauth]` | Auth.js sign-in/sign-out |
+| `GET` | `/api/expenses` | List expenses (auth required) |
 | `POST` | `/api/expenses` | Create expense |
 | `GET` | `/api/expenses/export` | Download expenses as CSV |
 | `GET` | `/api/expenses/[id]` | Get one expense |
@@ -129,14 +142,15 @@ types/                    # Shared TypeScript types
 
 ## Architecture
 
+- **Auth:** Auth.js Credentials provider with JWT sessions; [`middleware.ts`](middleware.ts) protects dashboard routes.
 - **Reads:** Server Components query MongoDB directly after `connection()` for Next.js 16 dynamic rendering.
 - **Writes:** Client forms call REST APIs; success triggers toast + redirect or `router.refresh()`.
-- **Layout:** [`app/(dashboard)/layout.tsx`](app/(dashboard)/layout.tsx) wraps pages with `SidebarProvider` and suspends the sidebar for `usePathname()`.
+- **Data isolation:** Every expense has a `userId`; queries and APIs filter by the signed-in user.
 
 ## Deployment
 
 1. Push to GitHub and import the repo on [Vercel](https://vercel.com).
-2. Add `MONGODB_URI` in **Project Settings → Environment Variables**.
+2. Add `MONGODB_URI`, `AUTH_SECRET`, and `AUTH_URL` in **Project Settings → Environment Variables**.
 3. Allow your Atlas cluster IP `0.0.0.0/0` (or Vercel’s IPs) in Atlas **Network Access**.
 4. Deploy; Vercel runs `npm run build` automatically.
 
@@ -144,12 +158,12 @@ types/                    # Shared TypeScript types
 
 **One-liner:** Full-stack expense tracker on Next.js 16 and MongoDB with server-rendered dashboard, REST APIs, and accessible CRUD UI (shadcn/ui).
 
-**Bullet:** SpendWise — Built a personal finance app with Next.js App Router (RSC), MongoDB/Mongoose, and TypeScript; delivered expense CRUD, filters/pagination, CSV export, Zod validation, and REST APIs with indexed queries.
+**Bullet:** SpendWise — Built a personal finance app with Next.js App Router (RSC), Auth.js, MongoDB/Mongoose, and TypeScript; delivered user auth, expense CRUD, filters/pagination, CSV export, and user-scoped REST APIs.
 
 ## Roadmap
 
 - [x] README, env template, search/filter/sort, pagination, CSV export, Zod validation
-- [ ] Authentication and user-scoped data
+- [x] Authentication and user-scoped data
 - [ ] Dashboard charts and budgets
 - [ ] Unit and E2E tests
 - [ ] CI/CD, Docker, recurring expenses

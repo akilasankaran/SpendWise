@@ -1,6 +1,7 @@
-import { Document, Schema, model, models } from 'mongoose';
+import { Document, Schema, Types, model, models } from 'mongoose';
 
 export interface IExpense extends Document {
+  userId: Types.ObjectId;
   title: string;
   description: string;
   amount: number;
@@ -16,6 +17,7 @@ export interface IExpense extends Document {
 
 
 const ExpenseSchema = new Schema<IExpense>({
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
   title:{type: String, required: [true, 'Title is required']},
   description:{type: String, default: ''},
   amount: {
@@ -39,12 +41,12 @@ const ExpenseSchema = new Schema<IExpense>({
   notes: { type: String },
   tags:{type: [String], default: []},
 }, {
-  timestamps: true, // Auto-generate createdAt and updatedAt
+  timestamps: true,
 })
 
-ExpenseSchema.index({ date: -1 });
-ExpenseSchema.index({ category: 1 });
-ExpenseSchema.index({ paymentMethod: 1 });
+ExpenseSchema.index({ userId: 1, date: -1 });
+ExpenseSchema.index({ userId: 1, category: 1 });
+ExpenseSchema.index({ userId: 1, paymentMethod: 1 });
 
 
 export default models.Expense || model<IExpense>('Expense', ExpenseSchema);

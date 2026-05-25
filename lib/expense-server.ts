@@ -4,7 +4,10 @@ import { buildExpenseFilter, buildExpenseSort } from "@/lib/expense-query";
 import { serializeExpense } from "@/lib/expense-utils";
 import { expenseListQuerySchema } from "@/lib/validations/expense";
 
-export async function getExpensesForPage(searchParams: Record<string, string | string[] | undefined>) {
+export async function getExpensesForPage(
+  userId: string,
+  searchParams: Record<string, string | string[] | undefined>,
+) {
   await connectDB();
 
   const raw: Record<string, string> = {};
@@ -13,7 +16,7 @@ export async function getExpensesForPage(searchParams: Record<string, string | s
   }
 
   const query = expenseListQuerySchema.parse(raw);
-  const filter = buildExpenseFilter(query);
+  const filter = buildExpenseFilter(query, userId);
   const sort = buildExpenseSort(query.sort);
   const skip = (query.page - 1) * query.limit;
 

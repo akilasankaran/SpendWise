@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Expense } from "@/database";
 import connectDB from "@/lib/mongodb";
+import { requireUserId } from "@/lib/auth";
 import { formatCurrency, formatDate, serializeExpense } from "@/lib/expense-utils";
 import { CATEGORY_LABELS } from "@/types/expense";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +18,9 @@ import {
 
 export default async function DashboardPage() {
   await connection();
+  const userId = await requireUserId();
   await connectDB();
-  const expenses = await Expense.find().sort({ date: -1 }).lean();
+  const expenses = await Expense.find({ userId }).sort({ date: -1 }).lean();
   const serializedExpenses = expenses.map(serializeExpense);
   const totalAmount = serializedExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const recentExpenses = serializedExpenses.slice(0, 5);
