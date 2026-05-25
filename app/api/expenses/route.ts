@@ -1,35 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Expense } from '@/database';
-import connectDB from '@/lib/mongodb';
-import { IExpense } from '@/database/expense.model';
+import { NextRequest, NextResponse } from "next/server";
+import { Expense } from "@/database";
+import connectDB from "@/lib/mongodb";
+import { buildExpenseFilter, buildExpenseSort } from "@/lib/expense-query";
+import { handleApiError, apiError } from "@/lib/api-response";
+import {
+  expenseInputSchema,
+  expenseListQuerySchema,
+} from "@/lib/validations/expense";
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    console.log('Connected to MongoDB');
-    const data: IExpense = await request.json();
-    console.log('Data received in get request:', data);
-
+    const body = await request.json();
+    const data = expenseInputSchema.parse(body);
     const expense = await Expense.create(data);
-    console.log('Expenses created:', expense);
-    return NextResponse.json({ message: 'Expense created successfully', expense: expense }, { status: 201 });
 
-
+    return NextResponse.json(
+      { message: "Expense created successfully", expense },
+      { status: 201 },
+    );
   } catch (error) {
-    return NextResponse.json({ error, message: (error as Error).message }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    console.log('Connected to MongoDB');
-    const expenses = await Expense.find().sort({ date: -1 });
-    console.log('Expenses found:', expenses);
-    return NextResponse.json(expenses, { status: 200 });
+    const { searchParams } = new URL(request.url);
+    const query = expenseListQuerySchema.parse(
+      Object.fromEntries(searchParams.entries()),
+    );
 
+    const filter = buildExpenseFilter(query);
+    const sort = buildExpenseSort(query.sort);
+    const skip = (query.page - 1) * query.limit;
+
+    const [expenses, total] = await Promise.all([
+      Expense.find(filter).sort(sort).skip(skip).limit(query.limit).lean(),
+      Expense.countDocuments(filter),
+    ]);
+
+    return NextResponse.json({
+      expenses,
+      pagination: {
+        page: query.page,
+        limit: query.limit,
+        total,
+        totalPages: Math.ceil(total / query.limit) || 1,
+      },
+    });
   } catch (error) {
-    return NextResponse.json({ error, message: (error as Error).message }, { status: 500 });
+    return handleApiError(error);
   }
 }

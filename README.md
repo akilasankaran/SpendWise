@@ -1,36 +1,159 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SpendWise
 
-## Getting Started
+Personal expense tracker with a dashboard, category tagging, payment methods, and full CRUD — built with Next.js App Router and MongoDB.
 
-First, run the development server:
+## Features
+
+- **Dashboard** — Total expense count, total amount, and five most recent expenses
+- **Expense list** — Search, filter by category/payment method, sort, and pagination
+- **Create / edit** — Forms with category, payment method, tags, notes, and validation
+- **Delete** — Confirmation dialog before removing an expense
+- **REST API** — `GET/POST /api/expenses`, `GET/PUT/DELETE /api/expenses/[id]`, CSV export
+- **Sidebar navigation** — Dashboard, expenses list, and add expense
+
+## Tech stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 16 (App Router, Partial Prerender) |
+| UI | React 19, Tailwind CSS 4, shadcn/ui |
+| Language | TypeScript |
+| Database | MongoDB, Mongoose 8 |
+| Validation | Zod |
+| Feedback | Sonner (toasts) |
+
+## Prerequisites
+
+- **Node.js** 20 or later
+- **npm** (or pnpm / yarn)
+- **MongoDB** — [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) free tier or a local instance
+
+## Quick start
+
+```bash
+git clone <your-repo-url>
+cd SpendWise
+npm install
+cp .env.example .env.local
+```
+
+Edit `.env.local` and set `MONGODB_URI` (see [MongoDB setup](#mongodb-setup) below).
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## MongoDB setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a free cluster at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Under **Database** → **Connect** → **Drivers**, copy the connection string.
+3. Replace `<password>` and set the database name in the URI.
+4. Paste the URI into `.env.local` as `MONGODB_URI`.
 
-## Learn More
+For local MongoDB:
 
-To learn more about Next.js, take a look at the following resources:
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/spendwise
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MONGODB_URI` | Yes | MongoDB connection string |
 
-## Deploy on Vercel
+See [`.env.example`](.env.example) for a template.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+
+## Project structure
+
+```
+app/
+├── (dashboard)/          # Pages with sidebar layout
+│   ├── page.tsx          # Dashboard
+│   ├── expenses/         # List, create, edit
+│   ├── error.tsx         # Error boundary
+│   └── not-found.tsx     # 404 UI
+├── api/expenses/         # REST routes + export
+components/
+├── expenses/             # Forms, filters, actions
+├── layout/               # App sidebar
+└── ui/                   # shadcn components
+database/                 # Mongoose models
+lib/                      # DB, validation, query helpers
+types/                    # Shared TypeScript types
+```
+
+## Routes
+
+### Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Dashboard |
+| `/expenses` | Expense list (search, filter, sort, pagination) |
+| `/expenses/new` | Create expense |
+| `/expenses/[id]/edit` | Edit expense |
+
+### API
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `GET` | `/api/expenses` | List expenses (`?page`, `limit`, `q`, `category`, `paymentMethod`, `sort`) |
+| `POST` | `/api/expenses` | Create expense |
+| `GET` | `/api/expenses/export` | Download expenses as CSV |
+| `GET` | `/api/expenses/[id]` | Get one expense |
+| `PUT` | `/api/expenses/[id]` | Update expense |
+| `DELETE` | `/api/expenses/[id]` | Delete expense |
+
+**Query parameters for list:**
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `page` | 1+ | `1` |
+| `limit` | 1–100 | `10` |
+| `q` | Search in title | — |
+| `category` | `travel`, `food`, `accommodation`, `other` | — |
+| `paymentMethod` | `cash`, `upi`, `credit-card`, etc. | — |
+| `sort` | `date-desc`, `date-asc`, `amount-desc`, `amount-asc` | `date-desc` |
+
+## Architecture
+
+- **Reads:** Server Components query MongoDB directly after `connection()` for Next.js 16 dynamic rendering.
+- **Writes:** Client forms call REST APIs; success triggers toast + redirect or `router.refresh()`.
+- **Layout:** [`app/(dashboard)/layout.tsx`](app/(dashboard)/layout.tsx) wraps pages with `SidebarProvider` and suspends the sidebar for `usePathname()`.
+
+## Deployment
+
+1. Push to GitHub and import the repo on [Vercel](https://vercel.com).
+2. Add `MONGODB_URI` in **Project Settings → Environment Variables**.
+3. Allow your Atlas cluster IP `0.0.0.0/0` (or Vercel’s IPs) in Atlas **Network Access**.
+4. Deploy; Vercel runs `npm run build` automatically.
+
+## Resume / portfolio
+
+**One-liner:** Full-stack expense tracker on Next.js 16 and MongoDB with server-rendered dashboard, REST APIs, and accessible CRUD UI (shadcn/ui).
+
+**Bullet:** SpendWise — Built a personal finance app with Next.js App Router (RSC), MongoDB/Mongoose, and TypeScript; delivered expense CRUD, filters/pagination, CSV export, Zod validation, and REST APIs with indexed queries.
+
+## Roadmap
+
+- [x] README, env template, search/filter/sort, pagination, CSV export, Zod validation
+- [ ] Authentication and user-scoped data
+- [ ] Dashboard charts and budgets
+- [ ] Unit and E2E tests
+- [ ] CI/CD, Docker, recurring expenses
+
+## License
+
+Private — use and modify for your portfolio as needed.

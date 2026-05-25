@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Expense } from "@/database";
 import connectDB from "@/lib/mongodb";
 import mongoose from "mongoose";
+import { handleApiError, apiError } from "@/lib/api-response";
+import { expenseInputSchema } from "@/lib/validations/expense";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -16,22 +18,19 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
 
     if (!isValidObjectId(id)) {
-      return NextResponse.json({ message: "Invalid expense ID" }, { status: 400 });
+      return apiError("Invalid expense ID", 400);
     }
 
     await connectDB();
     const expense = await Expense.findById(id);
 
     if (!expense) {
-      return NextResponse.json({ message: "Expense not found" }, { status: 404 });
+      return apiError("Expense not found", 404);
     }
 
     return NextResponse.json(expense, { status: 200 });
   } catch (error) {
-    return NextResponse.json(
-      { error, message: (error as Error).message },
-      { status: 500 },
-    );
+    return handleApiError(error);
   }
 }
 
@@ -40,11 +39,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
 
     if (!isValidObjectId(id)) {
-      return NextResponse.json({ message: "Invalid expense ID" }, { status: 400 });
+      return apiError("Invalid expense ID", 400);
     }
 
     await connectDB();
-    const data = await request.json();
+    const body = await request.json();
+    const data = expenseInputSchema.parse(body);
 
     const expense = await Expense.findByIdAndUpdate(id, data, {
       new: true,
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     });
 
     if (!expense) {
-      return NextResponse.json({ message: "Expense not found" }, { status: 404 });
+      return apiError("Expense not found", 404);
     }
 
     return NextResponse.json(
@@ -60,10 +60,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       { status: 200 },
     );
   } catch (error) {
-    return NextResponse.json(
-      { error, message: (error as Error).message },
-      { status: 500 },
-    );
+    return handleApiError(error);
   }
 }
 
@@ -72,14 +69,14 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
 
     if (!isValidObjectId(id)) {
-      return NextResponse.json({ message: "Invalid expense ID" }, { status: 400 });
+      return apiError("Invalid expense ID", 400);
     }
 
     await connectDB();
     const expense = await Expense.findByIdAndDelete(id);
 
     if (!expense) {
-      return NextResponse.json({ message: "Expense not found" }, { status: 404 });
+      return apiError("Expense not found", 404);
     }
 
     return NextResponse.json(
@@ -87,9 +84,6 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
       { status: 200 },
     );
   } catch (error) {
-    return NextResponse.json(
-      { error, message: (error as Error).message },
-      { status: 500 },
-    );
+    return handleApiError(error);
   }
 }

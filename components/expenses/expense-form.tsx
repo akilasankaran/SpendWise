@@ -23,6 +23,8 @@ import {
   PAYMENT_METHOD_LABELS,
 } from "@/types/expense";
 import { toDateInputValue } from "@/lib/expense-utils";
+import { expenseInputSchema } from "@/lib/validations/expense";
+import { ZodError } from "zod";
 
 type ExpenseFormProps =
   | { mode: "create" }
@@ -85,6 +87,18 @@ export function ExpenseForm(props: ExpenseFormProps) {
         .filter(Boolean),
     };
 
+    const parsed = expenseInputSchema.safeParse(payload);
+    if (!parsed.success) {
+      const message =
+        parsed.error instanceof ZodError
+          ? parsed.error.issues.map((i) => i.message).join(", ")
+          : "Invalid form data";
+      setError(message);
+      toast.error(message);
+      setIsSubmitting(false);
+      return;
+    }
+
     const url =
       props.mode === "edit"
         ? `/api/expenses/${props.expense._id}`
@@ -96,7 +110,7 @@ export function ExpenseForm(props: ExpenseFormProps) {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(parsed.data),
       });
 
       const data = await response.json();
