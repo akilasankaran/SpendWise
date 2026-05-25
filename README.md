@@ -2,7 +2,7 @@
 
 Personal expense tracker with a dashboard, category tagging, payment methods, and full CRUD — built with Next.js App Router and MongoDB.
 
-**Live demo:** [https://spendwise-akilasankaran.vercel.app](https://spendwise-akilasankaran.vercel.app) *(set after Vercel deploy — see [Deployment](#deployment))*
+**Live demo:** [https://spendwise-eight-wheat.vercel.app](https://spendwise-eight-wheat.vercel.app) · [Sign in](https://spendwise-eight-wheat.vercel.app/login)
 
 **Repository:** [github.com/akilasankaran/SpendWise](https://github.com/akilasankaran/SpendWise)
 
@@ -167,7 +167,7 @@ Data is stored in **MongoDB Atlas**, not on Vercel. Redeploying the app updates 
 |----------|------------|
 | `MONGODB_URI` | `...mongodb.net/spendwise?retryWrites=true&w=majority` |
 | `AUTH_SECRET` | `openssl rand -base64 32` |
-| `AUTH_URL` | `https://<your-app>.vercel.app` |
+| `AUTH_URL` | `https://spendwise-eight-wheat.vercel.app` |
 
 4. Deploy → smoke test register, create expense, redeploy, confirm data persists.
 

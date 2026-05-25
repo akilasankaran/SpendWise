@@ -51,7 +51,7 @@ Project → **Settings** → **Environment Variables** → add for **Production*
 |----------|------------------|
 | `MONGODB_URI` | Atlas URI with `/spendwise` (not `-dev`) |
 | `AUTH_SECRET` | New secret (can differ from local) |
-| `AUTH_URL` | `https://<your-vercel-domain>.vercel.app` |
+| `AUTH_URL` | `https://spendwise-eight-wheat.vercel.app` |
 
 **Important:** After first deploy, set `AUTH_URL` to the exact production URL. Wrong `AUTH_URL` breaks Auth.js callbacks.
 
