@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     const expense = await Expense.create(data);
     console.log('Expenses created:', expense);
-    return NextResponse.json({ message: 'Event created successfully', expense: expense }, { status: 201 });
+    return NextResponse.json({ message: 'Expense created successfully', expense: expense }, { status: 201 });
 
 
   } catch (error) {
