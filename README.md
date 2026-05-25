@@ -2,6 +2,10 @@
 
 Personal expense tracker with a dashboard, category tagging, payment methods, and full CRUD — built with Next.js App Router and MongoDB.
 
+**Live demo:** [https://spendwise-akilasankaran.vercel.app](https://spendwise-akilasankaran.vercel.app) *(set after Vercel deploy — see [Deployment](#deployment))*
+
+**Repository:** [github.com/akilasankaran/SpendWise](https://github.com/akilasankaran/SpendWise)
+
 ## Features
 
 - **Authentication** — Email/password register and login; expenses scoped per user
@@ -149,10 +153,32 @@ middleware.ts             # Route protection
 
 ## Deployment
 
-1. Push to GitHub and import the repo on [Vercel](https://vercel.com).
-2. Add `MONGODB_URI`, `AUTH_SECRET`, and `AUTH_URL` in **Project Settings → Environment Variables**.
-3. Allow your Atlas cluster IP `0.0.0.0/0` (or Vercel’s IPs) in Atlas **Network Access**.
-4. Deploy; Vercel runs `npm run build` automatically.
+Data is stored in **MongoDB Atlas**, not on Vercel. Redeploying the app updates code only — users and expenses persist in Atlas.
+
+**Full guide:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+### Quick steps
+
+1. **Atlas:** Network Access → allow `0.0.0.0/0`; use named databases (`spendwise-dev` local, `spendwise` production).
+2. **GitHub:** Push to [akilasankaran/SpendWise](https://github.com/akilasankaran/SpendWise).
+3. **Vercel:** Import repo → add env vars:
+
+| Variable | Production |
+|----------|------------|
+| `MONGODB_URI` | `...mongodb.net/spendwise?retryWrites=true&w=majority` |
+| `AUTH_SECRET` | `openssl rand -base64 32` |
+| `AUTH_URL` | `https://<your-app>.vercel.app` |
+
+4. Deploy → smoke test register, create expense, redeploy, confirm data persists.
+
+### Dev vs production data
+
+| Environment | Database in URI |
+|-------------|-----------------|
+| Local `.env` | `spendwise-dev` |
+| Vercel | `spendwise` |
+
+Same Atlas cluster, separate databases — safe to experiment locally without affecting production.
 
 ## Resume / portfolio
 
@@ -164,6 +190,7 @@ middleware.ts             # Route protection
 
 - [x] README, env template, search/filter/sort, pagination, CSV export, Zod validation
 - [x] Authentication and user-scoped data
+- [x] Deployment docs and dev/prod database separation
 - [ ] Dashboard charts and budgets
 - [ ] Unit and E2E tests
 - [ ] CI/CD, Docker, recurring expenses
