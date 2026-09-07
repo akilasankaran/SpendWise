@@ -180,12 +180,6 @@ Data is stored in **MongoDB Atlas**, not on Vercel. Redeploying the app updates 
 
 Same Atlas cluster, separate databases — safe to experiment locally without affecting production.
 
-## Resume / portfolio
-
-**One-liner:** Full-stack expense tracker on Next.js 16 and MongoDB with server-rendered dashboard, REST APIs, and accessible CRUD UI (shadcn/ui).
-
-**Bullet:** SpendWise — Built a personal finance app with Next.js App Router (RSC), Auth.js, MongoDB/Mongoose, and TypeScript; delivered user auth, expense CRUD, filters/pagination, CSV export, and user-scoped REST APIs.
-
 ## Roadmap
 
 - [x] README, env template, search/filter/sort, pagination, CSV export, Zod validation
@@ -195,6 +189,3 @@ Same Atlas cluster, separate databases — safe to experiment locally without af
 - [ ] Unit and E2E tests
 - [ ] CI/CD, Docker, recurring expenses
 
-## License
-
-Private — use and modify for your portfolio as needed.
